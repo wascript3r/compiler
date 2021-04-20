@@ -7,7 +7,7 @@ class Parser:
         self.lexer = lexer
         self.emitter = emitter
 
-        self.symbols = set()    # All variables we have declared so far.
+        self.symbols = dict()    # All variables we have declared so far.
         self.labelsDeclared = set() # Keep track of all labels declared
         self.labelsGotoed = set() # All labels goto'ed, so we know if they exist or not.
 
@@ -49,6 +49,7 @@ class Parser:
     # program ::= {statement}
     def program(self):
         self.emitter.headerLine("#include <stdio.h>")
+        self.emitter.headerLine("#include <string.h>")
         self.emitter.headerLine("int main(void){")
         
         # Since some newlines are required in our grammar, need to skip the excess.
@@ -82,16 +83,21 @@ class Parser:
                 self.emitter.emitLine("printf(\"" + self.curToken.text + "\\n\");")
                 self.nextToken()
 
-            # elif self.checkToken(TokenType.STR):
-            #     # Expect an expression and print the result as a int.
-            #     self.emitter.emitLine("printf(\"" )+ self.curToken.text + "\\n\");")
-            #     self.nextToken()
-
             else:
-                # Expect an expression and print the result as a int.
-                self.emitter.emit("printf(\"%" + "d\\n\", (int)(")
-                self.expression()
-                self.emitter.emitLine("));")
+                # Expect an expression and print the result as a int or string.
+                t = self.symbols[self.curToken.text]
+                if t == "int":
+                    self.emitter.emit("printf(\"%" + "d\\n\", (int)(")
+                    self.expression()
+                    self.emitter.emitLine("));")
+                elif t == "str":
+                    self.emitter.emit("printf(\"%" + "s\\n\", ")
+                    self.expression()
+                    self.emitter.emitLine(");")
+                elif t == "flt":
+                    self.emitter.emit("printf(\"%" + ".2f\\n\", (float)(")
+                    self.expression()
+                    self.emitter.emitLine("));")
 
         # "IF" comparison "THEN" block "ENDIF"
         elif self.checkToken(TokenType.IF):
@@ -152,8 +158,12 @@ class Parser:
 
             #  Check if ident exists in symbol table. If not, declare it.
             if self.curToken.text not in self.symbols:
-                self.symbols.add(self.curToken.text)
+                self.symbols[self.curToken.text] = "int"
                 self.emitter.headerLine("int " + self.curToken.text + ";")
+            else:
+                k = self.symbols[self.curToken.text]
+                if k != "int":
+                    self.abort("Trying to change " + self.curToken.text + " type from " + k.upper() + " to INT")
 
             self.emitter.emit(self.curToken.text + " = ")
             self.match(TokenType.IDENT)
@@ -168,15 +178,39 @@ class Parser:
 
             #  Check if ident exists in symbol table. If not, declare it.
             if self.curToken.text not in self.symbols:
-                self.symbols.add(self.curToken.text)
-                self.emitter.headerLine("char " + self.curToken.text + ";")
+                self.symbols[self.curToken.text] = "str"
+                self.emitter.headerLine("char " + self.curToken.text + "[256];")
+            else:
+                k = self.symbols[self.curToken.text]
+                if k != "str":
+                    self.abort("Trying to change " + self.curToken.text + " type from " + k.upper() + " to STR")
 
-            self.emitter.emit(self.curToken.text + " = '")
+            self.emitter.emit("strcpy(" + self.curToken.text + ", \"")
             self.match(TokenType.IDENT)
             self.match(TokenType.EQ)
             
             self.expression()
-            self.emitter.emitLine("';")
+            self.emitter.emitLine("\");")
+
+        # "FLT" ident = expression
+        elif self.checkToken(TokenType.FLT):
+            self.nextToken()
+
+            #  Check if ident exists in symbol table. If not, declare it.
+            if self.curToken.text not in self.symbols:
+                self.symbols[self.curToken.text] = "flt"
+                self.emitter.headerLine("float " + self.curToken.text + ";")
+            else:
+                k = self.symbols[self.curToken.text]
+                if k != "flt":
+                    self.abort("Trying to change " + self.curToken.text + " type from " + k.upper() + " to FLT")
+
+            self.emitter.emit(self.curToken.text + " = ")
+            self.match(TokenType.IDENT)
+            self.match(TokenType.EQ)
+            
+            self.expression()
+            self.emitter.emitLine(";")
 
         # "INPUT" ident
         elif self.checkToken(TokenType.INPUT):
@@ -184,7 +218,7 @@ class Parser:
 
             # If variable doesn't already exist, declare it.
             if self.curToken.text not in self.symbols:
-                self.symbols.add(self.curToken.text)
+                self.symbols[self.curToken.text] = "int"
                 self.emitter.headerLine("int " + self.curToken.text + ";")
 
             # Emit scanf but also validate the input. If invalid, set the variable to 0 and clear the input.
@@ -249,7 +283,7 @@ class Parser:
 
     # primary ::= number | ident
     def primary(self):
-        if self.checkToken(TokenType.NUMBER): 
+        if self.checkToken(TokenType.NUMBER) or self.checkToken(TokenType.STRING):
             self.emitter.emit(self.curToken.text)
             self.nextToken()
         elif self.checkToken(TokenType.IDENT):

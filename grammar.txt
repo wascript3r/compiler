@@ -5,6 +5,7 @@ statement ::= "PRINT" (expression | string) nl
             | "LABEL" ident nl
             | "GOTO" ident nl
             | "INT" ident "=" expression nl
+            | "FLT" ident "=" expression nl
             | "STR" ident "=" expression nl
             | "INPUT" ident nl
 comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+

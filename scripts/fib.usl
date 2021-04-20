@@ -1,10 +1,9 @@
-PRINT "How many fibonacci numbers do you want?"
+PRINT "Įveskite fibonacci skaičių kiekį:"
 INPUT nums
 PRINT ""
 
 INT a = 0
 INT b = 1
-STR d = "asd"
 WHILE nums > 0 REPEAT
     PRINT a
     INT c = a + b
@@ -12,4 +11,3 @@ WHILE nums > 0 REPEAT
     INT b = c
     INT nums = nums - 1
 ENDWHILE
-PRINT d

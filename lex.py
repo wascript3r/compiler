@@ -181,6 +181,7 @@ class TokenType(enum.Enum):
     REPEAT = 110
     ENDWHILE = 111
     STR = 112
+    FLT = 113
     # Operators.
     EQ = 201  
     PLUS = 202
