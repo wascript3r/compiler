@@ -1,0 +1,30 @@
+#!/bin/bash
+
+PYTHON="python3"
+COMPILER="teenytiny.py"
+CC="gcc"
+
+function comp {
+	DN=$(dirname "$1")
+	BN=$(basename -s .teeny "$1")
+	PN="$DN/$BN"
+	TTOUTPUT=$(${PYTHON} ${COMPILER} "$1" 2>&1)
+	if [ $? -ne 0 ]; then
+		echo "${TTOUTPUT}"
+	else
+		mv out.c "${PN}".c
+		CCOUTPUT=$(${CC} -o "${PN}" "${PN}".c)
+		if [ $? -ne 0 ]; then
+			echo "${CCOUTPUT}"
+		else
+			echo "${TTOUTPUT}"
+		fi
+	fi
+}
+
+if [ $# -eq 0 ]; then
+	echo "Invalid script path"
+	exit 1
+fi
+
+comp "$1"
