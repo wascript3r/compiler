@@ -4,7 +4,8 @@ statement ::= "PRINT" (expression | string) nl
             | "WHILE" comparison "REPEAT" nl {statement} "ENDWHILE" nl
             | "LABEL" ident nl
             | "GOTO" ident nl
-            | "LET" ident "=" expression nl
+            | "INT" ident "=" expression nl
+            | "STR" ident "=" expression nl
             | "INPUT" ident nl
 comparison ::= expression (("==" | "!=" | ">" | ">=" | "<" | "<=") expression)+
 expression ::= term {( "-" | "+" ) term}

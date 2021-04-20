@@ -82,9 +82,14 @@ class Parser:
                 self.emitter.emitLine("printf(\"" + self.curToken.text + "\\n\");")
                 self.nextToken()
 
+            # elif self.checkToken(TokenType.STR):
+            #     # Expect an expression and print the result as a int.
+            #     self.emitter.emitLine("printf(\"" )+ self.curToken.text + "\\n\");")
+            #     self.nextToken()
+
             else:
-                # Expect an expression and print the result as a float.
-                self.emitter.emit("printf(\"%" + ".2f\\n\", (float)(")
+                # Expect an expression and print the result as a int.
+                self.emitter.emit("printf(\"%" + "d\\n\", (int)(")
                 self.expression()
                 self.emitter.emitLine("));")
 
@@ -141,14 +146,14 @@ class Parser:
             self.emitter.emitLine("goto " + self.curToken.text + ";")
             self.match(TokenType.IDENT)
 
-        # "LET" ident = expression
-        elif self.checkToken(TokenType.LET):
+        # "INT" ident = expression
+        elif self.checkToken(TokenType.INT):
             self.nextToken()
 
             #  Check if ident exists in symbol table. If not, declare it.
             if self.curToken.text not in self.symbols:
                 self.symbols.add(self.curToken.text)
-                self.emitter.headerLine("float " + self.curToken.text + ";")
+                self.emitter.headerLine("int " + self.curToken.text + ";")
 
             self.emitter.emit(self.curToken.text + " = ")
             self.match(TokenType.IDENT)
@@ -157,6 +162,22 @@ class Parser:
             self.expression()
             self.emitter.emitLine(";")
 
+        # "STR" ident = expression
+        elif self.checkToken(TokenType.STR):
+            self.nextToken()
+
+            #  Check if ident exists in symbol table. If not, declare it.
+            if self.curToken.text not in self.symbols:
+                self.symbols.add(self.curToken.text)
+                self.emitter.headerLine("char " + self.curToken.text + ";")
+
+            self.emitter.emit(self.curToken.text + " = '")
+            self.match(TokenType.IDENT)
+            self.match(TokenType.EQ)
+            
+            self.expression()
+            self.emitter.emitLine("';")
+
         # "INPUT" ident
         elif self.checkToken(TokenType.INPUT):
             self.nextToken()
@@ -164,10 +185,10 @@ class Parser:
             # If variable doesn't already exist, declare it.
             if self.curToken.text not in self.symbols:
                 self.symbols.add(self.curToken.text)
-                self.emitter.headerLine("float " + self.curToken.text + ";")
+                self.emitter.headerLine("int " + self.curToken.text + ";")
 
             # Emit scanf but also validate the input. If invalid, set the variable to 0 and clear the input.
-            self.emitter.emitLine("if(0 == scanf(\"%" + "f\", &" + self.curToken.text + ")) {")
+            self.emitter.emitLine("if(0 == scanf(\"%" + "d\", &" + self.curToken.text + ")) {")
             self.emitter.emitLine(self.curToken.text + " = 0;")
             self.emitter.emit("scanf(\"%")
             self.emitter.emitLine("*s\");")

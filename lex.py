@@ -173,13 +173,14 @@ class TokenType(enum.Enum):
     GOTO = 102
     PRINT = 103
     INPUT = 104
-    LET = 105
+    INT = 105
     IF = 106
     THEN = 107
     ENDIF = 108
     WHILE = 109
     REPEAT = 110
     ENDWHILE = 111
+    STR = 112
     # Operators.
     EQ = 201  
     PLUS = 202

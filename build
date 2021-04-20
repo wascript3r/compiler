@@ -1,12 +1,12 @@
 #!/bin/bash
 
 PYTHON="python3"
-COMPILER="teenytiny.py"
+COMPILER="useles.py"
 CC="gcc"
 
 function comp {
 	DN=$(dirname "$1")
-	BN=$(basename -s .teeny "$1")
+	BN=$(basename -s .usl "$1")
 	PN="$DN/$BN"
 	TTOUTPUT=$(${PYTHON} ${COMPILER} "$1" 2>&1)
 	if [ $? -ne 0 ]; then
@@ -22,7 +22,7 @@ function comp {
 	fi
 }
 
-if [ $# -eq 0 ]; then
+if [ $# -eq 0 ] || [ ! -f "$1" ]; then
 	echo "Invalid script path"
 	exit 1
 fi
